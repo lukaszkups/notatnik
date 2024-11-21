@@ -24,15 +24,22 @@ const defaultStyles = `
     backgroud-color: #fdfdfd;
     color: #111;
   }
-`
+`;
 
 function renderItem(item) {
-  return `
+  const template = `
     <li class="notatnik-item">
-      <p>${item.content}</p>
-      <a href="${item.link}">${item.link}</a>
-    </li>
+      <div class="date">${item.date}</div>
+      <div class="content">${item.content}</div>
   `;
+  if (item.link) {
+    template += `<a href="${item.link}">${item.link}</a>`;
+  }
+  if (item.image) {
+    template += `<img src="${item.image}" alt="Micropost image" />`;
+  }
+  template += '</li>';
+  return template;
 }
 
 async function notatnik(opts) {
@@ -41,6 +48,7 @@ async function notatnik(opts) {
     url,
     primaryColor = '#ecbd29',  
     primaryColorHover = '#ddb125',
+    renderItem = renderItem,
   } = opts;
 
   const currentYear = new Date().getFullYear();
@@ -84,5 +92,12 @@ async function notatnik(opts) {
     return data.split('\n').map((line) => parseTextEntry(line));
   }
 
+  function injectStyles() {
+    const styleSheet = document.createElement('style');
+    styleSheet.textContent = defaultStyles;
+    document.head.appendChild(styleSheet)
+  }
+
+  injectStyles();
   await getLatestEntries();
 }
