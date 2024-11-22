@@ -23,6 +23,12 @@ const defaultStyles = `
     border-radius: 5px;
     background-color: #fdfdfd;
     color: #111;
+    transition: transform 0.25s;
+  	transform: translateY(0);
+  }
+  .notatnik-item:hover {
+  	transform: translateY(-3px);
+    transition: transform 0.25s;
   }
   .notatnik-item .date {
   	font-size: 0.75em;
