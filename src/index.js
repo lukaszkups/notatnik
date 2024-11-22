@@ -18,16 +18,45 @@ const defaultStyles = `
     display: block;
     position: relative;
     box-sizing: border-box;
-    padding: 5px;
+    padding: 10px 15px;
     margin-bottom: 5px;
     border-radius: 5px;
-    backgroud-color: #fdfdfd;
+    background-color: #fdfdfd;
     color: #111;
+  }
+  .notatnik-item .date {
+  	font-size: 0.75em;
+  }
+  .notatnik-item .content {
+  	padding: 0 0 5px 0;
+    font-size: 1em;
+  }
+  .notatnik-item a {
+  	display: block;
+    padding-bottom: 10px;
+  }
+  @keyframes dots {
+    0%, 20% {
+      content: '.';
+    }
+    40% {
+      content: '..';
+    }
+    60% {
+      content: '...';
+    }
+    90%, 100% {
+      content: '';
+    }
+  }
+  .notatnik-loader span:before {
+    animation: dots 2s linear infinite;
+    content: '';
   }
 `;
 
-function renderItem(item) {
-  const template = `
+function defaultRenderItem(item) {
+  let template = `
     <li class="notatnik-item">
       <div class="date">${item.date}</div>
       <div class="content">${item.content}</div>
@@ -42,13 +71,23 @@ function renderItem(item) {
   return template;
 }
 
+function defaultRenderLoading(nodeId) {
+	const wrapperNode = document.getElementById(nodeId);
+  if (wrapperNode) {
+  	wrapperNode.innerHTML = '<div class="notatnik-loader">Loading MicroBlog entries<span></span></div>'
+  } else {
+    console.error('NodeId has not been found: ', nodeId);  
+  }
+}
+
 async function notatnik(opts) {
   const { 
     nodeId, 
     url,
     primaryColor = '#ecbd29',  
     primaryColorHover = '#ddb125',
-    renderItem = renderItem,
+    renderItem = defaultRenderItem,
+    renderLoading = defaultRenderLoading,
   } = opts;
 
   const currentYear = new Date().getFullYear();
@@ -67,9 +106,6 @@ async function notatnik(opts) {
     const data = await response.text();
 
     const parsedData = parseTextEntries(data);
-    console.log(111111)
-    console.log(parsedData)
-    console.log(111111)
     return parsedData;
   }
 
@@ -80,11 +116,10 @@ async function notatnik(opts) {
       // Not using one liner to support more features maybe in the future
       if (index === tagsIndex) {
         item[itemProps[index]] = propValue.split(' ');
-      } else {
+      } else if (propValue) {
         item[itemProps[index]] = propValue;
       }
     });
-    console.log(3333, item)
     return item;
   }
 
@@ -97,7 +132,31 @@ async function notatnik(opts) {
     styleSheet.textContent = defaultStyles;
     document.head.appendChild(styleSheet)
   }
+  
+  function renderItems(items) {
+  	let htmlLayout = '<ul class="notatnik-list">';
+  	items.forEach((item) => {
+    	if (item?.content && item?.date) {
+	    	htmlLayout += renderItem(item);    
+      }
+    });
+    htmlLayout += '</ul>';
+    
+    const wrapperNode = document.getElementById(nodeId);
+    if (wrapperNode) {
+    	wrapperNode.innerHTML = htmlLayout;
+    } else {
+    	console.error('NodeId has not been found: ', nodeId);
+    }
+  }
 
   injectStyles();
-  await getLatestEntries();
+  defaultRenderLoading(nodeId);
+  const items = await getLatestEntries();
+  renderItems(items);
 }
+
+notatnik({
+	nodeId: 'bla',
+	url: 'https://raw.githubusercontent.com/lukaszkups/microblog/refs/heads/main',
+})
